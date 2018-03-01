@@ -17,25 +17,34 @@
 import concurrent.WorkerThreadFactory;
 import handler.request.impl.RequestHandlerImpl;
 import handler.response.impl.ResponseHandlerImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.NioHttpServer;
 import server.context.NioHttpServerBuilder;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ServerBootstrap {
 
-  public static void main(String[] args) throws IOException {
-    NioHttpServer httpServer =
-        NioHttpServerBuilder.of()
-            .inetSocketAddress(new InetSocketAddress(8080))
-            .responseHandler(new ResponseHandlerImpl())
-            .requestHandler(new RequestHandlerImpl())
-            .build();
-    // TODO define thread pool size
-    ExecutorService executor = Executors.newCachedThreadPool();
-    executor.execute(new WorkerThreadFactory().newThread(httpServer));
+  private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ServerBootstrap.class);
+
+  public static void main(String[] args) {
+    try {
+      NioHttpServer httpServer =
+          NioHttpServerBuilder.of()
+              .inetSocketAddress(new InetSocketAddress(8080))
+              .responseHandler(new ResponseHandlerImpl())
+              .requestHandler(new RequestHandlerImpl())
+              .build();
+      EXECUTOR_SERVICE.execute(WorkerThreadFactory.of().newThread(httpServer));
+    } catch (Exception e) {
+      LOGGER.error(e.getCause().getMessage());
+    } finally {
+      EXECUTOR_SERVICE.shutdown();
+    }
   }
 }

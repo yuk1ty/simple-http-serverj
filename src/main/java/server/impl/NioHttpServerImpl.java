@@ -19,7 +19,6 @@ package server.impl;
 import base.exception.NioHttpServerException;
 import server.NioHttpServer;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -31,7 +30,7 @@ public class NioHttpServerImpl implements NioHttpServer {
 
   private final ServerSocketChannel serverSocketChannel;
 
-  public NioHttpServerImpl(InetSocketAddress inetSocketAddress) throws IOException {
+  public NioHttpServerImpl(InetSocketAddress inetSocketAddress) throws Exception {
     this.selector = Selector.open();
     this.serverSocketChannel = ServerSocketChannel.open();
     serverSocketChannel.socket().bind(inetSocketAddress);

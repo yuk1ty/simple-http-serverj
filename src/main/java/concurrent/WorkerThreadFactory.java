@@ -1,4 +1,6 @@
-package concurrent;/*
+package concurrent;
+
+/*
  * Copyright 2017 Yuki Toyoda
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,12 +16,31 @@ package concurrent;/*
  * limitations under the License.
  */
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.ThreadFactory;
 
 public class WorkerThreadFactory implements ThreadFactory {
 
-    @Override
-    public Thread newThread(Runnable r) {
-        return new Thread(r);
-    }
+  private static final Logger LOGGER = LoggerFactory.getLogger(WorkerThreadFactory.class);
+
+  private WorkerThreadFactory() {}
+
+  public static WorkerThreadFactory of() {
+    return new WorkerThreadFactory();
+  }
+
+  @Override
+  public Thread newThread(Runnable r) {
+    Thread thread = new Thread(r);
+    thread.setUncaughtExceptionHandler(
+        (t, e) -> {
+          LOGGER.error(
+              String.format(
+                  "Unexpected error has been occurred in %s: %s",
+                  t.getName(), e.getCause().getMessage()));
+        });
+    return thread;
+  }
 }

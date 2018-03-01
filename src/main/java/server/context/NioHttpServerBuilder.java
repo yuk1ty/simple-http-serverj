@@ -21,7 +21,6 @@ import handler.response.ResponseHandler;
 import server.NioHttpServer;
 import server.impl.NioHttpServerImpl;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 public class NioHttpServerBuilder {
@@ -53,7 +52,7 @@ public class NioHttpServerBuilder {
     return this;
   }
 
-  public NioHttpServer build() throws IOException {
+  public NioHttpServer build() throws Exception {
     return new NioHttpServerImpl(inetSocketAddress);
   }
 }
