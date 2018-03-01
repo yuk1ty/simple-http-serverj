@@ -1,4 +1,4 @@
-package handler.response.impl;
+package handler;
 
 /*
  * Copyright 2017 Yuki Toyoda
@@ -16,6 +16,4 @@ package handler.response.impl;
  * limitations under the License.
  */
 
-import handler.response.ResponseHandler;
-
-public class ResponseHandlerImpl implements ResponseHandler {}
+public interface HttpServerHandler {}

@@ -16,4 +16,6 @@ package handler.request;
  * limitations under the License.
  */
 
-public interface RequestHandler {}
+import handler.HttpServerHandler;
+
+public final class RequestHandler implements HttpServerHandler {}

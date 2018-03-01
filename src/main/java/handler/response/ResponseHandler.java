@@ -16,4 +16,6 @@ package handler.response;
  * limitations under the License.
  */
 
-public interface ResponseHandler {}
+import handler.HttpServerHandler;
+
+public final class ResponseHandler implements HttpServerHandler {}

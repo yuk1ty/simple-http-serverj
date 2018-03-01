@@ -15,8 +15,8 @@
  */
 
 import concurrent.WorkerThreadFactory;
-import handler.request.impl.RequestHandlerImpl;
-import handler.response.impl.ResponseHandlerImpl;
+import handler.request.RequestHandler;
+import handler.response.ResponseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.NioHttpServer;
@@ -37,8 +37,8 @@ public class ServerBootstrap {
       NioHttpServer httpServer =
           NioHttpServerBuilder.of()
               .inetSocketAddress(new InetSocketAddress(8080))
-              .responseHandler(new ResponseHandlerImpl())
-              .requestHandler(new RequestHandlerImpl())
+              .addHandler(new ResponseHandler())
+              .addHandler(new RequestHandler())
               .build();
       EXECUTOR_SERVICE.execute(WorkerThreadFactory.of().newThread(httpServer));
     } catch (Exception e) {

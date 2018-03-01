@@ -17,12 +17,17 @@ package server.impl;
  */
 
 import base.exception.NioHttpServerException;
+import handler.HttpServerHandler;
+import handler.request.RequestHandler;
+import handler.response.ResponseHandler;
 import server.NioHttpServer;
 
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
+import java.util.HashMap;
+import java.util.Map;
 
 public class NioHttpServerImpl implements NioHttpServer {
 
@@ -30,12 +35,17 @@ public class NioHttpServerImpl implements NioHttpServer {
 
   private final ServerSocketChannel serverSocketChannel;
 
-  public NioHttpServerImpl(InetSocketAddress inetSocketAddress) throws Exception {
+  private final Map<Class<?>, HttpServerHandler> handlers = new HashMap<>();
+
+  public NioHttpServerImpl(
+      InetSocketAddress inetSocketAddress, Map<Class<?>, HttpServerHandler> handlers)
+      throws Exception {
     this.selector = Selector.open();
     this.serverSocketChannel = ServerSocketChannel.open();
     serverSocketChannel.socket().bind(inetSocketAddress);
     serverSocketChannel.configureBlocking(false);
     serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+    this.handlers.putAll(handlers);
   }
 
   @Override
