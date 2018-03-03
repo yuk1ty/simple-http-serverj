@@ -16,4 +16,34 @@ package base.data;
  * limitations under the License.
  */
 
-public final class Response {}
+import java.nio.ByteBuffer;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+
+public final class Response {
+
+  private final Status status;
+
+  private final String contentType;
+
+  private final int contentLength;
+
+  private final byte[] content;
+
+  public Response(Status status, String contentType, int contentLength, byte[] content) {
+    this.status = status;
+    this.contentType = contentType;
+    this.contentLength = contentLength;
+    this.content = content;
+  }
+
+  public ByteBuffer toByteBuf() {
+    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+    StringBuilder sb = new StringBuilder();
+    sb.append("HTTP/1.1");
+    sb.append(status);
+    sb.append("aaa");
+    // TODO define offset and length
+    return ByteBuffer.wrap(sb.toString().getBytes());
+  }
+}

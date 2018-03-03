@@ -16,7 +16,12 @@ package server.impl;
  * limitations under the License.
  */
 
+import base.data.Request;
+import base.data.Response;
 import base.exception.NioHttpServerException;
+import fj.F;
+import fj.data.Either;
+import fj.data.Option;
 import handler.request.RequestHandler;
 import handler.response.ResponseHandler;
 import org.slf4j.Logger;
@@ -25,11 +30,18 @@ import server.NioHttpServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static fj.data.Either.right;
 
 public class NioHttpServerImpl implements NioHttpServer {
 
@@ -42,6 +54,8 @@ public class NioHttpServerImpl implements NioHttpServer {
   private final RequestHandler requestHandler;
 
   private final ResponseHandler responseHandler;
+
+  private final Map<SocketChannel, Request> pendingRequests = new ConcurrentHashMap<>();
 
   public NioHttpServerImpl(
       InetSocketAddress inetSocketAddress,
@@ -65,6 +79,8 @@ public class NioHttpServerImpl implements NioHttpServer {
             doAccept((ServerSocketChannel) key.channel());
           } else if (key.isReadable()) {
             doRead((SocketChannel) key.channel());
+          } else if (key.isWritable()) {
+            doWrite((SocketChannel) key.channel());
           }
         }
       }
@@ -73,25 +89,57 @@ public class NioHttpServerImpl implements NioHttpServer {
     }
   }
 
-  private void doAccept(ServerSocketChannel serverSocketChannel) throws IOException {
-    SocketChannel socketChannel = serverSocketChannel.accept();
-    LOGGER.info("Connected: %s", socketChannel.socket().getRemoteSocketAddress().toString());
-    socketChannel.configureBlocking(false);
-    socketChannel.register(selector, SelectionKey.OP_READ);
-  }
-
-  private void doRead(SocketChannel socketChannel) throws IOException {
+  private void doAccept(ServerSocketChannel serverSocketChannel) throws NioHttpServerException {
     try {
-    } finally {
-      LOGGER.info("Disconnected: %s", socketChannel.socket().getRemoteSocketAddress().toString());
-      socketChannel.close();
+      SocketChannel socketChannel = serverSocketChannel.accept();
+      LOGGER.info("Connected: %s", socketChannel.socket().getRemoteSocketAddress().toString());
+      socketChannel.configureBlocking(false);
+      socketChannel.register(selector, SelectionKey.OP_READ);
+    } catch (IOException err) {
+      throw new NioHttpServerException(err);
     }
   }
 
-  public void destroy(ServerSocketChannel serverSocketChannel) throws IOException {
-    if (serverSocketChannel != null && serverSocketChannel.isOpen()) {
-      selector.close();
-      serverSocketChannel.close();
+  private void doRead(SocketChannel socketChannel) throws NioHttpServerException {
+    try {
+      ByteBuffer buf = ByteBuffer.allocate(1024);
+      socketChannel.read(buf);
+      buf.flip();
+      pendingRequests.putIfAbsent(socketChannel, requestHandler.apply(buf));
+      socketChannel.register(selector, SelectionKey.OP_WRITE);
+    } catch (IOException e) {
+      throw new NioHttpServerException(e);
+    } finally {
+      LOGGER.info("Disconnected: %s", socketChannel.socket().getRemoteSocketAddress().toString());
+      try {
+        socketChannel.close();
+      } catch (IOException e) {
+        throw new NioHttpServerException(e);
+      }
+    }
+  }
+
+  private void doWrite(SocketChannel socketChannel) throws NioHttpServerException {
+    try {
+      Request request = pendingRequests.get(socketChannel);
+
+      if (Objects.nonNull(request)) {
+        Response response = responseHandler.apply(request);
+        socketChannel.write(response.toByteBuf());
+      }
+    } catch (IOException err) {
+      throw new NioHttpServerException(err);
+    }
+  }
+
+  public void destroy(ServerSocketChannel serverSocketChannel) throws NioHttpServerException {
+    try {
+      if (serverSocketChannel != null && serverSocketChannel.isOpen()) {
+        selector.close();
+        serverSocketChannel.close();
+      }
+    } catch (IOException err) {
+      throw new NioHttpServerException(err);
     }
   }
 
@@ -111,7 +159,7 @@ public class NioHttpServerImpl implements NioHttpServer {
     } finally {
       try {
         destroy(serverSocketChannel);
-      } catch (IOException err) {
+      } catch (NioHttpServerException err) {
         LOGGER.error(err.getCause().getMessage());
       }
     }

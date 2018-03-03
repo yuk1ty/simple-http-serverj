@@ -20,12 +20,33 @@ import base.data.Request;
 import base.exception.NioHttpServerException;
 import handler.HttpServerHandler;
 
-import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public final class RequestHandler implements HttpServerHandler<InputStream, Request> {
+public final class RequestHandler implements HttpServerHandler<ByteBuffer, Request> {
+
+  private static final Pattern PATTERN =
+      Pattern.compile("(?<method>.*) (?<path>.*?) (?<version>.*?)");
+
+  private final Charset charset;
+
+  public RequestHandler() {
+    this.charset = Charset.forName("UTF-8");
+  }
 
   @Override
-  public Request apply(InputStream inputStream) throws NioHttpServerException {
-    return null;
+  public Request apply(ByteBuffer buf) throws NioHttpServerException {
+    Matcher matcher = PATTERN.matcher(charset.decode(buf));
+
+    System.out.println("request handler");
+
+    if (!matcher.find()) {
+      // TODO
+      return null;
+    }
+
+    return new Request(matcher.group("method"), matcher.group("path"), matcher.group("version"));
   }
 }
