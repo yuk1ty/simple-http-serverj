@@ -16,4 +16,9 @@ package base.exception;
  * limitations under the License.
  */
 
-public class NioHttpServerException extends Exception {}
+public final class NioHttpServerException extends Exception {
+
+  public NioHttpServerException(Throwable exception) {
+    super(exception);
+  }
+}
