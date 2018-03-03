@@ -16,19 +16,20 @@ package server.context;
  * limitations under the License.
  */
 
-import handler.HttpServerHandler;
+import handler.request.RequestHandler;
+import handler.response.ResponseHandler;
 import server.NioHttpServer;
 import server.impl.NioHttpServerImpl;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
 
 public class NioHttpServerBuilder {
 
   private InetSocketAddress inetSocketAddress;
 
-  private Map<Class<?>, HttpServerHandler> handlers = new HashMap<>();
+  private RequestHandler requestHandler;
+
+  private ResponseHandler responseHandler;
 
   public static final NioHttpServerBuilder of() {
     return new NioHttpServerBuilder();
@@ -41,12 +42,17 @@ public class NioHttpServerBuilder {
     return this;
   }
 
-  public NioHttpServerBuilder addHandler(HttpServerHandler handler) {
-    handlers.putIfAbsent(handler.getClass(), handler);
+  public NioHttpServerBuilder addHandler(RequestHandler requestHandler) {
+    this.requestHandler = requestHandler;
+    return this;
+  }
+
+  public NioHttpServerBuilder addHandler(ResponseHandler responseHandler) {
+    this.responseHandler = responseHandler;
     return this;
   }
 
   public NioHttpServer build() throws Exception {
-    return new NioHttpServerImpl(inetSocketAddress, handlers);
+    return new NioHttpServerImpl(inetSocketAddress, requestHandler, responseHandler);
   }
 }

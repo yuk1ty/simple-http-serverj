@@ -36,7 +36,7 @@ public class ServerBootstrap {
     try {
       NioHttpServer httpServer =
           NioHttpServerBuilder.of()
-              .inetSocketAddress(new InetSocketAddress(8080))
+              .inetSocketAddress(new InetSocketAddress(1234))
               .addHandler(new ResponseHandler())
               .addHandler(new RequestHandler())
               .build();

@@ -16,9 +16,4 @@ package server;
  * limitations under the License.
  */
 
-import base.exception.NioHttpServerException;
-
-public interface NioHttpServer extends Runnable {
-
-  void start() throws NioHttpServerException;
-}
+public interface NioHttpServer extends Runnable {}

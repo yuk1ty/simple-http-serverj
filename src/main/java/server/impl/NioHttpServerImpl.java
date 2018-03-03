@@ -17,47 +17,104 @@ package server.impl;
  */
 
 import base.exception.NioHttpServerException;
-import handler.HttpServerHandler;
 import handler.request.RequestHandler;
 import handler.response.ResponseHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.NioHttpServer;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.channels.SocketChannel;
+import java.util.Iterator;
 
 public class NioHttpServerImpl implements NioHttpServer {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(NioHttpServerImpl.class);
+
+  private final InetSocketAddress inetSocketAddress;
+
   private final Selector selector;
 
-  private final ServerSocketChannel serverSocketChannel;
+  private final RequestHandler requestHandler;
 
-  private final Map<Class<?>, HttpServerHandler> handlers = new HashMap<>();
+  private final ResponseHandler responseHandler;
 
   public NioHttpServerImpl(
-      InetSocketAddress inetSocketAddress, Map<Class<?>, HttpServerHandler> handlers)
+      InetSocketAddress inetSocketAddress,
+      RequestHandler requestHandler,
+      ResponseHandler responseHandler)
       throws Exception {
     this.selector = Selector.open();
-    this.serverSocketChannel = ServerSocketChannel.open();
-    serverSocketChannel.socket().bind(inetSocketAddress);
-    serverSocketChannel.configureBlocking(false);
-    serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-    this.handlers.putAll(handlers);
+    this.inetSocketAddress = inetSocketAddress;
+    this.requestHandler = requestHandler;
+    this.responseHandler = responseHandler;
   }
 
-  @Override
-  public void start() throws NioHttpServerException {}
+  private void start(ServerSocketChannel serverSocketChannel) throws NioHttpServerException {
+    try {
+      while (selector.select() > 0) {
+        for (Iterator iter = selector.selectedKeys().iterator(); iter.hasNext(); ) {
+          SelectionKey key = (SelectionKey) iter.next();
+          iter.remove();
+
+          if (key.isAcceptable()) {
+            doAccept((ServerSocketChannel) key.channel());
+          } else if (key.isReadable()) {
+            doRead((SocketChannel) key.channel());
+          }
+        }
+      }
+    } catch (IOException err) {
+      throw new NioHttpServerException(err);
+    }
+  }
+
+  private void doAccept(ServerSocketChannel serverSocketChannel) throws IOException {
+    SocketChannel socketChannel = serverSocketChannel.accept();
+    LOGGER.info("Connected: %s", socketChannel.socket().getRemoteSocketAddress().toString());
+    socketChannel.configureBlocking(false);
+    socketChannel.register(selector, SelectionKey.OP_READ);
+  }
+
+  private void doRead(SocketChannel socketChannel) throws IOException {
+    try {
+
+    } finally {
+      LOGGER.info("Disconnected: %s", socketChannel.socket().getRemoteSocketAddress().toString());
+      socketChannel.close();
+    }
+  }
+
+  public void destroy(ServerSocketChannel serverSocketChannel) throws IOException {
+    if (serverSocketChannel != null && serverSocketChannel.isOpen()) {
+      selector.close();
+      serverSocketChannel.close();
+    }
+  }
 
   /** {@inheritDoc} */
   @Override
   public void run() {
+    ServerSocketChannel serverSocketChannel = null;
     try {
-      start();
-    } catch (NioHttpServerException e) {
-      e.printStackTrace();
+      serverSocketChannel = ServerSocketChannel.open();
+      serverSocketChannel.socket().bind(inetSocketAddress);
+      serverSocketChannel.configureBlocking(false);
+      serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+
+      start(serverSocketChannel);
+    } catch (NioHttpServerException | IOException err) {
+      LOGGER.error(err.getCause().getMessage());
+    } finally {
+      try {
+        destroy(serverSocketChannel);
+      } catch (IOException err) {
+        LOGGER.error(err.getCause().getMessage());
+      }
     }
   }
 }
