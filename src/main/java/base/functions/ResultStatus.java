@@ -1,6 +1,4 @@
-package handler;
-
-/*
+package base.functions;/*
  * Copyright 2017 Yuki Toyoda
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +14,7 @@ package handler;
  * limitations under the License.
  */
 
-import base.functions.ThrowableFunction;
-
-public interface HttpServerHandler<F, T> extends ThrowableFunction<F, T> {}
+public enum ResultStatus {
+    OK,
+    ERR
+}

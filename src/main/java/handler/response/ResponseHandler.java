@@ -16,6 +16,15 @@ package handler.response;
  * limitations under the License.
  */
 
+import base.data.Request;
+import base.data.Response;
+import base.exception.NioHttpServerException;
 import handler.HttpServerHandler;
 
-public final class ResponseHandler implements HttpServerHandler {}
+public final class ResponseHandler implements HttpServerHandler<Request, Response> {
+
+  @Override
+  public Response apply(Request inputStream) throws NioHttpServerException {
+    return null;
+  }
+}

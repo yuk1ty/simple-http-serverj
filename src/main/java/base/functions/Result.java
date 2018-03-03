@@ -1,4 +1,4 @@
-package handler.request;
+package base.functions;
 
 /*
  * Copyright 2017 Yuki Toyoda
@@ -16,16 +16,37 @@ package handler.request;
  * limitations under the License.
  */
 
-import base.data.Request;
-import base.exception.NioHttpServerException;
-import handler.HttpServerHandler;
+import java.util.Objects;
+import java.util.stream.Stream;
 
-import java.io.InputStream;
+public final class Result<R, E extends Throwable> {
 
-public final class RequestHandler implements HttpServerHandler<InputStream, Request> {
+  private final E error;
 
-  @Override
-  public Request apply(InputStream inputStream) throws NioHttpServerException {
-    return null;
+  private final R result;
+
+  public Result(R result, E error) {
+    this.result = result;
+    this.error = error;
+  }
+
+  public R getResult() {
+    return result;
+  }
+
+  public E getError() {
+    return error;
+  }
+
+  public ResultStatus status() {
+    if (Objects.isNull(result)) {
+      return ResultStatus.ERR;
+    } else {
+      return ResultStatus.OK;
+    }
+  }
+
+  public Stream<Result<R, E>> toStream() {
+    return Stream.of(this);
   }
 }

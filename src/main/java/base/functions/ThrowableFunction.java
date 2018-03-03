@@ -1,4 +1,4 @@
-package handler;
+package base.functions;
 
 /*
  * Copyright 2017 Yuki Toyoda
@@ -16,6 +16,10 @@ package handler;
  * limitations under the License.
  */
 
-import base.functions.ThrowableFunction;
+import base.exception.NioHttpServerException;
 
-public interface HttpServerHandler<F, T> extends ThrowableFunction<F, T> {}
+@FunctionalInterface
+public interface ThrowableFunction<F, T> {
+
+  T apply(F value) throws NioHttpServerException;
+}
