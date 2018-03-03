@@ -54,7 +54,7 @@ public class NioHttpServerImpl implements NioHttpServer {
     this.responseHandler = responseHandler;
   }
 
-  private void start(ServerSocketChannel serverSocketChannel) throws NioHttpServerException {
+  private void start() throws NioHttpServerException {
     try {
       while (selector.select() > 0) {
         for (Iterator iter = selector.selectedKeys().iterator(); iter.hasNext(); ) {
@@ -106,7 +106,7 @@ public class NioHttpServerImpl implements NioHttpServer {
       serverSocketChannel.configureBlocking(false);
       serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-      start(serverSocketChannel);
+      start();
     } catch (NioHttpServerException | IOException err) {
       LOGGER.error(err.getCause().getMessage());
     } finally {
