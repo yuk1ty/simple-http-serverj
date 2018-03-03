@@ -18,8 +18,6 @@ package base.data;
 
 public final class Request {
 
-  private static final Request EMPTY = new Request(null, null, null);
-
   private final String method;
 
   private final String path;

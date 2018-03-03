@@ -50,8 +50,6 @@ public class NioHttpServerImpl implements NioHttpServer {
 
   private final ResponseHandler responseHandler;
 
-  private final Map<SocketChannel, Request> pendingRequests = new ConcurrentHashMap<>();
-
   public NioHttpServerImpl(
       InetSocketAddress inetSocketAddress,
       RequestHandler requestHandler,
