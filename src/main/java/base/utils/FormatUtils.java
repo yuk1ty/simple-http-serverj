@@ -1,4 +1,4 @@
-package base.data;
+package base.utils;
 
 /*
  * Copyright 2017 Yuki Toyoda
@@ -16,24 +16,17 @@ package base.data;
  * limitations under the License.
  */
 
-public enum Status {
-  OK(200, "200 OK"),
-  NOT_FOUND(404, "404 NotFound");
+import java.time.format.DateTimeFormatter;
 
-  private final int statusCode;
+public final class FormatUtils {
 
-  private final String statusText;
+  private FormatUtils() {}
 
-  Status(int statusCode, String statusText) {
-    this.statusCode = statusCode;
-    this.statusText = statusText;
+  public static DateTimeFormatter rfc1123() {
+    return DateTimeFormatter.RFC_1123_DATE_TIME;
   }
 
-  public int getStatusCode() {
-    return statusCode;
-  }
-
-  public String getStatusText() {
-    return statusText;
+  public static String crlf() {
+    return "\r\n";
   }
 }
