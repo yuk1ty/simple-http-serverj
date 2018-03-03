@@ -18,6 +18,7 @@ package handler.response;
 
 import base.data.Request;
 import base.data.Response;
+import base.data.Status;
 import base.exception.NioHttpServerException;
 import handler.HttpServerHandler;
 
@@ -25,7 +26,6 @@ public final class ResponseHandler implements HttpServerHandler<Request, Respons
 
   @Override
   public Response apply(Request request) throws NioHttpServerException {
-    System.out.println("response handler");
-    return null;
+    return new Response(Status.OK, "application/text", 100, null);
   }
 }

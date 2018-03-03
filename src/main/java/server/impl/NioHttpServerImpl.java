@@ -19,7 +19,6 @@ package server.impl;
 import base.data.Request;
 import base.data.Response;
 import base.exception.NioHttpServerException;
-import fj.F;
 import fj.data.Either;
 import fj.data.Option;
 import handler.request.RequestHandler;
@@ -37,11 +36,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static fj.data.Either.right;
 
 public class NioHttpServerImpl implements NioHttpServer {
 
@@ -79,8 +74,6 @@ public class NioHttpServerImpl implements NioHttpServer {
             doAccept((ServerSocketChannel) key.channel());
           } else if (key.isReadable()) {
             doRead((SocketChannel) key.channel());
-          } else if (key.isWritable()) {
-            doWrite((SocketChannel) key.channel());
           }
         }
       }
@@ -105,8 +98,25 @@ public class NioHttpServerImpl implements NioHttpServer {
       ByteBuffer buf = ByteBuffer.allocate(1024);
       socketChannel.read(buf);
       buf.flip();
-      pendingRequests.putIfAbsent(socketChannel, requestHandler.apply(buf));
-      socketChannel.register(selector, SelectionKey.OP_WRITE);
+
+      Option<Request> maybeRequest = requestHandler.apply(buf);
+      buf.clear();
+
+      Option<Either<Exception, Response>> maybeResponse =
+          maybeRequest.map(
+              request -> {
+                try {
+                  Response response = responseHandler.apply(request);
+                  socketChannel.write(response.toByteBuf());
+                  return Either.right(response);
+                } catch (NioHttpServerException | IOException err) {
+                  return Either.left(err);
+                }
+              });
+
+      if (maybeResponse.isSome() && maybeResponse.some().isLeft()) {
+        throw new NioHttpServerException(maybeResponse.some().left().value());
+      }
     } catch (IOException e) {
       throw new NioHttpServerException(e);
     } finally {
@@ -116,19 +126,6 @@ public class NioHttpServerImpl implements NioHttpServer {
       } catch (IOException e) {
         throw new NioHttpServerException(e);
       }
-    }
-  }
-
-  private void doWrite(SocketChannel socketChannel) throws NioHttpServerException {
-    try {
-      Request request = pendingRequests.get(socketChannel);
-
-      if (Objects.nonNull(request)) {
-        Response response = responseHandler.apply(request);
-        socketChannel.write(response.toByteBuf());
-      }
-    } catch (IOException err) {
-      throw new NioHttpServerException(err);
     }
   }
 
@@ -154,13 +151,16 @@ public class NioHttpServerImpl implements NioHttpServer {
       serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
       start();
-    } catch (NioHttpServerException | IOException err) {
-      LOGGER.error(err.getCause().getMessage());
+    } catch (NioHttpServerException err) {
+      LOGGER.error(err.getMessage());
+    } catch (IOException err) {
+      LOGGER.error(err.getMessage());
+      err.printStackTrace();
     } finally {
       try {
         destroy(serverSocketChannel);
       } catch (NioHttpServerException err) {
-        LOGGER.error(err.getCause().getMessage());
+        LOGGER.error(err.getMessage());
       }
     }
   }

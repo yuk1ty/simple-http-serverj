@@ -18,6 +18,7 @@ package handler.request;
 
 import base.data.Request;
 import base.exception.NioHttpServerException;
+import fj.data.Option;
 import handler.HttpServerHandler;
 
 import java.nio.ByteBuffer;
@@ -25,7 +26,7 @@ import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class RequestHandler implements HttpServerHandler<ByteBuffer, Request> {
+public final class RequestHandler implements HttpServerHandler<ByteBuffer, Option<Request>> {
 
   private static final Pattern PATTERN =
       Pattern.compile("(?<method>.*) (?<path>.*?) (?<version>.*?)");
@@ -37,16 +38,14 @@ public final class RequestHandler implements HttpServerHandler<ByteBuffer, Reque
   }
 
   @Override
-  public Request apply(ByteBuffer buf) throws NioHttpServerException {
+  public Option<Request> apply(ByteBuffer buf) throws NioHttpServerException {
     Matcher matcher = PATTERN.matcher(charset.decode(buf));
 
-    System.out.println("request handler");
-
     if (!matcher.find()) {
-      // TODO
-      return null;
+      return Option.none();
     }
 
-    return new Request(matcher.group("method"), matcher.group("path"), matcher.group("version"));
+    return Option.some(
+        new Request(matcher.group("method"), matcher.group("path"), matcher.group("version")));
   }
 }

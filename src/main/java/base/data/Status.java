@@ -16,4 +16,24 @@ package base.data;
  * limitations under the License.
  */
 
-public enum Status {}
+public enum Status {
+  OK(200, "OK"),
+  NOT_FOUND(404, "NotFound");
+
+  private final int statusCode;
+
+  private final String statusText;
+
+  Status(int statusCode, String statusText) {
+    this.statusCode = statusCode;
+    this.statusText = statusText;
+  }
+
+  public int getStatusCode() {
+    return statusCode;
+  }
+
+  public String getStatusText() {
+    return statusText;
+  }
+}

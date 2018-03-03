@@ -41,7 +41,7 @@ public final class Response {
     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
     StringBuilder sb = new StringBuilder();
     sb.append("HTTP/1.1");
-    sb.append(status);
+    sb.append(status.getStatusCode());
     sb.append("aaa");
     // TODO define offset and length
     return ByteBuffer.wrap(sb.toString().getBytes());
