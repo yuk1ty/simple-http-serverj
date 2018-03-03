@@ -18,6 +18,7 @@ package base.data;
 
 public enum Status {
   OK(200, "200 OK"),
+  BAD_REQUEST(400, "400 BadRequest"),
   NOT_FOUND(404, "404 NotFound");
 
   private final int statusCode;

@@ -29,6 +29,14 @@ public final class ResponseHandler implements HttpServerHandler<Request, Respons
 
   @Override
   public Response apply(Request request) throws NioHttpServerException {
+    if (!Objects.equals(request.getMethod(), "GET")) {
+      return new Response(
+          Status.BAD_REQUEST,
+          "text/html;charset=utf8",
+          String.format("Cannot handle %s method", request.getMethod())
+              .getBytes(StandardCharsets.UTF_8));
+    }
+
     if (Objects.equals(request.getPath(), "/hello")) {
       return new Response(
           Status.OK,
