@@ -35,8 +35,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class NioHttpServerImpl implements NioHttpServer {
 
@@ -83,7 +81,9 @@ public class NioHttpServerImpl implements NioHttpServer {
   private void doAccept(ServerSocketChannel serverSocketChannel) throws NioHttpServerException {
     try {
       SocketChannel socketChannel = serverSocketChannel.accept();
-      LOGGER.info("Connected: %s", socketChannel.socket().getRemoteSocketAddress().toString());
+      LOGGER.info(
+          String.format(
+              "Connected: %s", socketChannel.socket().getRemoteSocketAddress().toString()));
       socketChannel.configureBlocking(false);
       socketChannel.register(selector, SelectionKey.OP_READ);
     } catch (IOException err) {
@@ -118,7 +118,9 @@ public class NioHttpServerImpl implements NioHttpServer {
     } catch (IOException e) {
       throw new NioHttpServerException(e);
     } finally {
-      LOGGER.info("Disconnected: %s", socketChannel.socket().getRemoteSocketAddress().toString());
+      LOGGER.info(
+          String.format(
+              "Disconnected: %s", socketChannel.socket().getRemoteSocketAddress().toString()));
       try {
         socketChannel.close();
       } catch (IOException e) {
