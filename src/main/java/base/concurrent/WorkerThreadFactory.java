@@ -1,4 +1,4 @@
-package concurrent;
+package base.concurrent;
 
 /*
  * Copyright 2017 Yuki Toyoda

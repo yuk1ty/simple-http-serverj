@@ -1,4 +1,6 @@
-package base.data;/*
+package base.data;
+
+/*
  * Copyright 2017 Yuki Toyoda
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,5 +16,4 @@ package base.data;/*
  * limitations under the License.
  */
 
-public final class Request {
-}
+public final class Request {}

@@ -82,7 +82,6 @@ public class NioHttpServerImpl implements NioHttpServer {
 
   private void doRead(SocketChannel socketChannel) throws IOException {
     try {
-
     } finally {
       LOGGER.info("Disconnected: %s", socketChannel.socket().getRemoteSocketAddress().toString());
       socketChannel.close();
